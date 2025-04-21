@@ -50,17 +50,18 @@
 </head>
 <body>
     <div class="instructions">
-        <p>Press WASD to move, Shift to sprint, Space to jump. Your flashlight moves with your view.</p>
+        <p>Press WASD to move, Shift to sprint, Space to jump, and F to toggle your flashlight.</p>
         <button id="startButton">Start</button>
     </div>
     <canvas id="gameCanvas"></canvas>
 
     <script>
-        // JavaScript for controls, pointer lock, and game mechanics
+        // JavaScript for controls, pointer lock, and flashlight functionality
         const canvas = document.getElementById('gameCanvas');
         const context = canvas.getContext('2d');
         const startButton = document.getElementById('startButton');
         let keys = {};
+        let flashlightOn = true;
 
         // Resize canvas to fit the screen
         canvas.width = window.innerWidth;
@@ -76,10 +77,10 @@
             jumping: false,
         };
 
-        // Flashlight effect
+        // Flashlight settings
         const flashlightRadius = 150;
 
-        // Initialize the game
+        // Start the game
         startButton.addEventListener('click', () => {
             startButton.style.display = 'none';
             canvas.requestPointerLock();
@@ -95,6 +96,11 @@
         // Keyboard controls
         document.addEventListener('keydown', (event) => {
             keys[event.key] = true;
+
+            // Toggle flashlight
+            if (event.key === 'f') {
+                flashlightOn = !flashlightOn;
+            }
         });
 
         document.addEventListener('keyup', (event) => {
@@ -122,20 +128,25 @@
             }
 
             // Draw flashlight effect
-            context.fillStyle = 'rgba(0, 0, 0, 0.95)';
-            context.fillRect(0, 0, canvas.width, canvas.height);
+            if (flashlightOn) {
+                context.fillStyle = 'rgba(0, 0, 0, 0.95)';
+                context.fillRect(0, 0, canvas.width, canvas.height);
 
-            context.beginPath();
-            context.arc(player.x, player.y, flashlightRadius, 0, Math.PI * 2);
-            context.fillStyle = 'rgba(255, 255, 255, 0.8)';
-            context.fill();
-            context.globalCompositeOperation = 'destination-out';
-            context.beginPath();
-            context.arc(player.x, player.y, flashlightRadius, 0, Math.PI * 2);
-            context.fill();
-            context.globalCompositeOperation = 'source-over';
+                context.beginPath();
+                context.arc(player.x, player.y, flashlightRadius, 0, Math.PI * 2);
+                context.fillStyle = 'rgba(255, 255, 255, 0.8)';
+                context.fill();
+                context.globalCompositeOperation = 'destination-out';
+                context.beginPath();
+                context.arc(player.x, player.y, flashlightRadius, 0, Math.PI * 2);
+                context.fill();
+                context.globalCompositeOperation = 'source-over';
+            } else {
+                context.fillStyle = 'rgba(0, 0, 0, 1)';
+                context.fillRect(0, 0, canvas.width, canvas.height);
+            }
 
-            // Simulate monster (random movement)
+            // Simulate a monster
             drawMonster();
 
             requestAnimationFrame(gameLoop);
