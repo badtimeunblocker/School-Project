@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebAssembly Survival Game</title>
+    <script src="https://cdn.jsdelivr.net/npm/three@latest/build/three.min.js"></script>
+    <script src="https://cdn.babylonjs.com/babylon.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <canvas id="renderCanvas"></canvas>
+    <script>
+        // Game logic and rendering code below.
+    </script>
+</body>
+</html>
+<script>
+// Game initialization
+const canvas = document.getElementById("renderCanvas");
+const engine = new BABYLON.Engine(canvas, true);
+const scene = new BABYLON.Scene(engine);
+
+// Create a basic environment
+const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 50, height: 50}, scene);
+const skybox = BABYLON.MeshBuilder.CreateBox("skyBox", {size: 100}, scene);
+skybox.material = new BABYLON.StandardMaterial("skyBoxMaterial", scene);
+skybox.material.diffuseColor = new BABYLON.Color3(0.5, 0.8, 1); // Sky color
+
+// First-person camera
+const camera = new BABYLON.UniversalCamera("camera", new BABYLON.Vector3(0, 5, -10), scene);
+camera.attachControl(canvas, true);
+
+// Lighting
+const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(0, 1, 0), scene);
+
+// Monster character
+const monster = BABYLON.MeshBuilder.CreateSphere("monster", {diameter: 2}, scene);
+monster.position = new BABYLON.Vector3(0, 2, 10);
+monster.material = new BABYLON.StandardMaterial("monsterMaterial", scene);
+monster.material.diffuseColor = new BABYLON.Color3(1, 0, 0); // Red for danger
+
+// Objectives: Add collectibles
+const item = BABYLON.MeshBuilder.CreateBox("item", {size: 1}, scene);
+item.position = new BABYLON.Vector3(-10, 1, 0);
+item.material = new BABYLON.StandardMaterial("itemMaterial", scene);
+item.material.diffuseColor = new BABYLON.Color3(0, 1, 0); // Green for collectible
+
+// Monster AI movement
+let monsterDirection = 1;
+scene.registerBeforeRender(() => {
+    monster.position.z += monsterDirection * 0.1;
+    if (monster.position.z > 15 || monster.position.z < 5) {
+        monsterDirection *= -1; // Reverse direction
+    }
+});
+
+// Player survival mechanics
+let health = 100;
+scene.onPointerObservable.add((pointerInfo) => {
+    if (pointerInfo.pickInfo.hit && pointerInfo.pickInfo.pickedMesh.name === "monster") {
+        health -= 10; // Decrease health when monster is clicked
+        console.log(`Health: ${health}`);
+    }
+});
+
+// Render the scene
+engine.runRenderLoop(() => {
+    scene.render();
+});
+
+// Resize handling
+window.addEventListener("resize", () => {
+    engine.resize();
+});
+<script>
+  // Game state variables
+let isGameOver = false;
+let objectivesCompleted = false;
+
+// Check win condition (e.g., collect an item)
+scene.onPointerObservable.add((pointerInfo) => {
+    if (pointerInfo.pickInfo.hit && pointerInfo.pickInfo.pickedMesh.name === "item") {
+        objectivesCompleted = true;
+        console.log("Objective Completed!");
+    }
+});
+
+// Game loop - Check win/lose conditions
+engine.runRenderLoop(() => {
+    if (isGameOver) return; // Stop rendering if the game is over
+    
+    scene.render();
+
+    // Win condition
+    if (objectivesCompleted) {
+        isGameOver = true;
+        alert("You Win!");
+        engine.stopRenderLoop(); // Stop the game loop
+    }
+
+    // Lose condition
+    if (health <= 0) {
+        isGameOver = true;
+        alert("Game Over!");
+        engine.stopRenderLoop(); // Stop the game loop
+    }
+});
+<script>
